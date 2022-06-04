@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import { View, Text, TextInput, Image, TouchableOpacity } from "react-native";
 import { ArrowLeft } from "phosphor-react-native";
 import { captureScreen } from "react-native-view-shot";
+import * as FileSystem from "expo-file-system";
+
+import { api } from "../../libs/api";
 
 import { FeedbackType } from "../Widget";
 import ScreenshotButton from "../ScreenshotButton";
@@ -19,6 +22,7 @@ interface Props {
 
 const Form = ({ feedbackType, onFeedbackCanceled, onFeedbackSent }: Props) => {
   const [isSendingFeedback, setIsSendingFeedback] = useState(false);
+  const [comment, setComment] = useState("");
   const [screenshot, setScreenshot] = useState<string | null>(null);
 
   const feedbackTypeInfo = feedbackTypes[feedbackType];
@@ -43,12 +47,25 @@ const Form = ({ feedbackType, onFeedbackCanceled, onFeedbackSent }: Props) => {
 
     setIsSendingFeedback(true);
 
-    // try {
+    let screenshotBase64 = "data:image/png;base64,";
+    if (screenshot) {
+      screenshotBase64 += await FileSystem.readAsStringAsync(screenshot, {
+        encoding: "base64",
+      });
+    }
 
-    // } catch (error) {
-    //   console.log(error)
-    //   setIsSendingFeedback(false)
-    // }
+    try {
+      await api.post("/feedbacks", {
+        type: feedbackType,
+        comment,
+        screenshot: screenshotBase64,
+      });
+
+      onFeedbackSent();
+    } catch (error) {
+      console.log(error);
+      setIsSendingFeedback(false);
+    }
   };
 
   return (
@@ -74,6 +91,7 @@ const Form = ({ feedbackType, onFeedbackCanceled, onFeedbackSent }: Props) => {
         placeholder="Tell us in detail what's going on..."
         placeholderTextColor={theme.colors.text_secondary}
         autoCorrect={false}
+        onChangeText={setComment}
       />
 
       <View style={styles.footer}>
