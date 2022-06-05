@@ -101,7 +101,11 @@ const Form = ({ feedbackType, onFeedbackCanceled, onFeedbackSent }: Props) => {
           screenshot={screenshot}
         />
 
-        <Button onPress={handleSendFeedback} isLoading={isSendingFeedback} />
+        <Button
+          onPress={handleSendFeedback}
+          isLoading={isSendingFeedback}
+          disabled={!comment || isSendingFeedback}
+        />
       </View>
     </View>
   );
